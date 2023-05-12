@@ -1,6 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const User = require("../model/user")
+const bcryptjs = require('bcryptjs');
 
 //////////////      
 router.post("/users", (req, res) => {
@@ -8,7 +9,7 @@ router.post("/users", (req, res) => {
     user.save()
         .then((user) => {
             res.status(200).send(user)
-        })       
+        })
         .catch((e) => {
             res.status(400).send(e)
         })
@@ -92,10 +93,31 @@ router.post("/login", async (req, res) => {
         res.status(400).send(e.message)
     }
 })
+ ////////////
+ router.post('/logout', async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+  
+    if (!user) {
+      return res.status(400).send("Error, Verify Your Email or Password!");
+    }
+  
+    const ismatch = await bcryptjs.compare(password, user.password);
+  
+    if (!ismatch) {
+      return res.status(400).send("Error, Verify Your Email or Password!");
+    }
+  
+    await user.removetoken();
+    await user.removeUser();
+  
+    res.status(200).send("Signed Out Successfully");
+  });    
+  
 
-   
+  ///////////////////////////////////////////////
 
-///////////////////////////////////////
+
 router.post('/users', async (req, res) => {
     try {
         const user = new User(req.body)
@@ -108,9 +130,5 @@ router.post('/users', async (req, res) => {
 })
 
 //////////////////////
-
-
-
-
 
 module.exports = router

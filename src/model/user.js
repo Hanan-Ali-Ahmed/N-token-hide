@@ -47,10 +47,12 @@ const userschema = new mongoose.Schema({
         }
       },
       
-      tokens : [{
-          type : String,
-          required : true
-        }]
+      tokens: [{
+       
+          type: String,
+          required: true
+      
+      }]
 })
 
   //////////////
@@ -67,27 +69,39 @@ const userschema = new mongoose.Schema({
    ////////////////////
    userschema.statics.findByCredentials = async (em , pass) => {
      const user = await User.findOne({email : em})
-
      if(!user){
-      throw new Error("Error, Check Your Email or Password!")
-     }
-
-
+      throw new Error("Error, Verify Your Email or Password!")}
      const ismatch = await bcryptjs.compare(pass , user.password)
       if(!ismatch){
-        throw new Error("Error, Check Your Email or Password!")
-
-      }
-        return user
-  
-  
-  
-    }
-
+        throw new Error("Error, Verify Your Email or Password!")}
+        return user}
+       ////////////////////////////////////////
+      
+     
+   
    //////////////////////////////////
+   userschema.methods.removetoken = async function (token) {
+    const user = this
+    user.tokens = user.tokens.filter(t => t.token !== token)
+        await user.save();
+  };
+  
+  userschema.methods.removeUser = async function () {
+    
+    try {
+      const user = this
+      await user.deleteOne();
+        } catch (e) {
+          throw new Error("Error remove account")
+        }
+  };
+
+
+
+  //  ///////////////////////////////////////////
        userschema.methods.generateToken = async function(){
         const user = this
-
+                                                         
         const token = jwt.sign({_id:user._id.toString()}, "jana")
        
         user.tokens = user.tokens.concat(token)
